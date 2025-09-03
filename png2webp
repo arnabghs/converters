@@ -1,12 +1,20 @@
 #!/bin/bash
 
-# Check if input folder is provided
-if [ -z "$1" ]; then
-    echo "❌ Usage: $0 <folder_path>"
+# Check if both input folder and architecture are provided
+if [ -z "$1" ] || [ -z "$2" ]; then
+    echo "❌ Usage: $0 <folder_path> <arch>"
+    echo "   arch can be 'x86' or 'ARM'"
     exit 1
 fi
 
 INPUT_FOLDER="$1"
+ARCH="$2"
+
+# Validate architecture
+if [ "$ARCH" != "x86" ] && [ "$ARCH" != "ARM" ]; then
+    echo "❌ Error: Architecture must be either 'x86' or 'ARM'"
+    exit 1
+fi
 
 # Check if folder exists
 if [ ! -d "$INPUT_FOLDER" ]; then
@@ -28,8 +36,15 @@ for file in "$INPUT_FOLDER"/*.png; do
     # Get the filename without extension
     filename=$(basename "$file" .png)
 
+    # Set the appropriate libwebp path based on architecture
+    if [ "$ARCH" = "x86" ]; then
+        WEBP_PATH="x86/image/libwebp-1.5.0-mac-x86-64/bin/cwebp"
+    else
+        WEBP_PATH="ARM/image/libwebp-1.6.0-mac-arm64/bin/cwebp"
+    fi
+
     # Convert to WEBP
-    /Users/arnabghosh/Documents/converter/image/libwebp-1.5.0-mac-x86-64/bin/cwebp "$file" -o "$OUTPUT_FOLDER/$filename.webp"
+    "$WEBP_PATH" "$file" -o "$OUTPUT_FOLDER/$filename.webp"
     echo "✅ Converted: $file → $OUTPUT_FOLDER/$filename.webp"
 done
 
