@@ -1,14 +1,24 @@
 #!/bin/bash
 
-# Check if both input folder and architecture are provided
+# Check if required parameters are provided
 if [ -z "$1" ] || [ -z "$2" ]; then
-    echo "❌ Usage: $0 <folder_path> <arch>"
+    echo "❌ Usage: $0 <zip_file> <arch>"
     echo "   arch can be 'x86' or 'ARM'"
     exit 1
 fi
 
-INPUT_FOLDER="$1"
+INPUT_ZIP="$1"
 ARCH="$2"
+
+# Get the directory containing the zip file
+ZIP_DIR=$(dirname "$INPUT_ZIP")
+
+# Extract the base ID from the filename (e.g., 'DES0001' from 'DES0001-20250903T205850Z-1-001.zip')
+ZIP_NAME=$(basename "$INPUT_ZIP")
+BASE_ID=$(echo "$ZIP_NAME" | cut -d'-' -f1)
+
+# Set output folder using just the base ID
+OUTPUT_FOLDER="$ZIP_DIR/$BASE_ID"
 
 # Validate architecture
 if [ "$ARCH" != "x86" ] && [ "$ARCH" != "ARM" ]; then
@@ -16,20 +26,28 @@ if [ "$ARCH" != "x86" ] && [ "$ARCH" != "ARM" ]; then
     exit 1
 fi
 
-# Check if folder exists
-if [ ! -d "$INPUT_FOLDER" ]; then
-    echo "❌ Error: Folder '$INPUT_FOLDER' does not exist."
+# Check if input zip file exists
+if [ ! -f "$INPUT_ZIP" ]; then
+    echo "❌ Error: Zip file '$INPUT_ZIP' does not exist."
     exit 1
 fi
 
-# Set output folder
-OUTPUT_FOLDER="${INPUT_FOLDER%/}/output_webp"
+# Create temp directory for unzipping
+TEMP_DIR=$(mktemp -d)
+echo "📦 Unzipping files to temporary directory..."
+
+# Unzip the file
+unzip -q "$INPUT_ZIP" -d "$TEMP_DIR" || {
+    echo "❌ Error: Failed to unzip file"
+    rm -rf "$TEMP_DIR"
+    exit 1
+}
 
 # Create output folder if it doesn't exist
 mkdir -p "$OUTPUT_FOLDER"
 
-# Convert each PNG file in the input folder
-for file in "$INPUT_FOLDER"/*.png; do
+# Convert each PNG file in the temp directory
+for file in "$TEMP_DIR"/**/*.png; do
     # Skip if no PNG files found
     [ -e "$file" ] || { echo "⚠️ No PNG files found in $INPUT_FOLDER."; exit 0; }
 
@@ -48,4 +66,6 @@ for file in "$INPUT_FOLDER"/*.png; do
     echo "✅ Converted: $file → $OUTPUT_FOLDER/$filename.webp"
 done
 
+# Clean up temporary directory
+rm -rf "$TEMP_DIR"
 echo "🎉 All images converted and saved in: $OUTPUT_FOLDER"
