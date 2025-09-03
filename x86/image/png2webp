@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Check if input folder is provided
+if [ -z "$1" ]; then
+    echo "❌ Usage: $0 <folder_path>"
+    exit 1
+fi
+
+INPUT_FOLDER="$1"
+
+# Check if folder exists
+if [ ! -d "$INPUT_FOLDER" ]; then
+    echo "❌ Error: Folder '$INPUT_FOLDER' does not exist."
+    exit 1
+fi
+
+# Set output folder
+OUTPUT_FOLDER="${INPUT_FOLDER%/}/output_webp"
+
+# Create output folder if it doesn't exist
+mkdir -p "$OUTPUT_FOLDER"
+
+# Convert each PNG file in the input folder
+for file in "$INPUT_FOLDER"/*.png; do
+    # Skip if no PNG files found
+    [ -e "$file" ] || { echo "⚠️ No PNG files found in $INPUT_FOLDER."; exit 0; }
+
+    # Get the filename without extension
+    filename=$(basename "$file" .png)
+
+    # Convert to WEBP
+    /Users/arnabghosh/Documents/converter/image/libwebp-1.5.0-mac-x86-64/bin/cwebp "$file" -o "$OUTPUT_FOLDER/$filename.webp"
+    echo "✅ Converted: $file → $OUTPUT_FOLDER/$filename.webp"
+done
+
+echo "🎉 All images converted and saved in: $OUTPUT_FOLDER"
