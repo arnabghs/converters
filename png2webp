@@ -2,13 +2,13 @@
 
 # Check if required parameters are provided
 if [ -z "$1" ] || [ -z "$2" ]; then
-    echo "❌ Usage: $0 <zip_file> <arch>"
+    echo "❌ Usage: $0 <arch> <zip_file>"
     echo "   arch can be 'x86' or 'ARM'"
     exit 1
 fi
 
-INPUT_ZIP="$1"
-ARCH="$2"
+ARCH="$1"
+INPUT_ZIP="$2"
 
 # Get the directory containing the zip file
 ZIP_DIR=$(dirname "$INPUT_ZIP")
