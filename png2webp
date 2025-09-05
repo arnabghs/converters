@@ -43,8 +43,9 @@ unzip -q "$INPUT_ZIP" -d "$TEMP_DIR" || {
     exit 1
 }
 
-# Create output folder if it doesn't exist
-mkdir -p "$OUTPUT_FOLDER"
+# Create output folders if they don't exist
+mkdir -p "$OUTPUT_FOLDER/oversize"
+mkdir -p "$OUTPUT_FOLDER/regular"
 
 # Convert each PNG file in the temp directory
 for file in "$TEMP_DIR"/**/*.png; do
@@ -61,11 +62,26 @@ for file in "$TEMP_DIR"/**/*.png; do
         WEBP_PATH="ARM/image/libwebp-1.6.0-mac-arm64/bin/cwebp"
     fi
 
+    # Convert filename to lowercase for case-insensitive comparison
+    filename_lower=$(echo "$filename" | tr '[:upper:]' '[:lower:]')
+
+    # Determine the appropriate subdirectory based on filename (case-insensitive)
+    if [[ "$filename_lower" == *"oversize"* ]]; then
+        output_subdir="$OUTPUT_FOLDER/oversize"
+    elif [[ "$filename_lower" == *"regular"* ]]; then
+        output_subdir="$OUTPUT_FOLDER/regular"
+    else
+        output_subdir="$OUTPUT_FOLDER"
+    fi
+
     # Convert to WEBP
-    "$WEBP_PATH" "$file" -o "$OUTPUT_FOLDER/$filename.webp"
-    echo "✅ Converted: $file → $OUTPUT_FOLDER/$filename.webp"
+    "$WEBP_PATH" "$file" -o "$output_subdir/$filename.webp"
+    echo "✅ Converted: $file → $output_subdir/$filename.webp"
 done
 
 # Clean up temporary directory
 rm -rf "$TEMP_DIR"
+
+
+
 echo "🎉 All images converted and saved in: $OUTPUT_FOLDER"
