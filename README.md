@@ -19,3 +19,11 @@ To Convert a zip of folder containing PNG images:
 ```
 
 It will create a new folder, convert all the images to WEBP and organize them in Regular and Oversize dir.
+
+=============================================
+
+To reduce JPG image size, use built-in library
+
+```
+sips --setProperty formatOptions 50 ~/Downloads/IMG_5133.JPG --out ~/Downloads/output.jpg
+```
