@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# Script to convert MKV videos to WEBM format
+# Usage: ./mkv2webm
+
+# Color codes for output
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}Starting MKV to WEBM conversion...${NC}\n"
+
+# Step 1: Create the transformed_files folder
+TRANSFORMED_DIR="$HOME/Downloads/transformed_files"
+echo -e "${BLUE}Creating output directory: ${TRANSFORMED_DIR}${NC}"
+mkdir -p "$TRANSFORMED_DIR"
+
+# Step 2: Check if original_files folder exists
+ORIGINAL_DIR="$HOME/Downloads/original_files"
+if [ ! -d "$ORIGINAL_DIR" ]; then
+    echo -e "${RED}Error: Original files directory not found: ${ORIGINAL_DIR}${NC}"
+    exit 1
+fi
+
+# Step 3: Convert each MKV file to WEBM
+mkv_count=$(find "$ORIGINAL_DIR" -maxdepth 1 -name "*.mkv" -type f | wc -l | tr -d ' ')
+
+if [ "$mkv_count" -eq 0 ]; then
+    echo -e "${RED}No MKV files found in ${ORIGINAL_DIR}${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}Found ${mkv_count} MKV file(s) to convert${NC}\n"
+
+converted=0
+failed=0
+
+for mkv_file in "$ORIGINAL_DIR"/*.mkv; do
+    # Check if the glob matched any files
+    [ -e "$mkv_file" ] || continue
+
+    # Get the filename without path
+    filename=$(basename "$mkv_file")
+    # Get the filename without extension
+    filename_no_ext="${filename%.mkv}"
+
+    # Output file path
+    output_file="$TRANSFORMED_DIR/${filename_no_ext}.webm"
+
+    echo -e "${BLUE}Converting: ${filename}${NC}"
+
+    # Run ffmpeg conversion
+    if ffmpeg -i "$mkv_file" -c:v libvpx-vp9 -crf 18 -b:v 0 -c:a libopus "$output_file" -y -loglevel error -stats; then
+        echo -e "${GREEN}✓ Successfully converted: ${filename_no_ext}.webm${NC}\n"
+        ((converted++))
+    else
+        echo -e "${RED}✗ Failed to convert: ${filename}${NC}\n"
+        ((failed++))
+    fi
+done
+
+echo -e "\n${BLUE}================================================${NC}"
+echo -e "${GREEN}Conversion complete!${NC}"
+echo -e "${GREEN}Successfully converted: ${converted} file(s)${NC}"
+if [ "$failed" -gt 0 ]; then
+    echo -e "${RED}Failed: ${failed} file(s)${NC}"
+fi
+echo -e "${BLUE}Output directory: ${TRANSFORMED_DIR}${NC}"
+echo -e "${BLUE}================================================${NC}"
+

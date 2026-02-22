@@ -1,5 +1,5 @@
-To convert a single image from PNG to WEBP,
-
+# Image Conversion
+To convert a single image from PNG to WEBP
 
 For Mac M1 ARM64, run the following commands in your terminal:
 ```
@@ -27,3 +27,25 @@ To reduce JPG image size, use built-in library
 ```
 sips --setProperty formatOptions 50 ~/Downloads/IMG_5133.JPG --out ~/Downloads/output.jpg
 ```
+
+# Video Conversion
+
+Install ffmpeg using Homebrew:
+```
+brew install ffmpeg
+``` 
+
+To convert a single video from MKV to WEBM:
+```
+ffmpeg -i ~/Downloads/original_files/H_AOT_0001.mkv -c:v libvpx-vp9 -crf 18 -b:v 0 -c:a libopus ~/Downloads/transformed_files/H_AOT_0001.webm
+```
+
+To convert an entire folder of MKV videos to WEBM,
+
+1. Make sure all the `.mkv` files are in `~/Downloads/original_files`
+
+```
+./mkv2webm
+```
+
+New files will be stored in `~/Downloads/transformed_files`
