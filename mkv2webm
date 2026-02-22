@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 echo -e "${BLUE}Starting MKV to WEBM conversion...${NC}\n"
 
 # Step 1: Create the transformed_files folder
-TRANSFORMED_DIR="$HOME/Downloads/transformed_files"
+TRANSFORMED_DIR="$HOME/Downloads/transformed_files_2"
 echo -e "${BLUE}Creating output directory: ${TRANSFORMED_DIR}${NC}"
 mkdir -p "$TRANSFORMED_DIR"
 
@@ -50,8 +50,17 @@ for mkv_file in "$ORIGINAL_DIR"/*.mkv; do
 
     echo -e "${BLUE}Converting: ${filename}${NC}"
 
-    # Run ffmpeg conversion
-    if ffmpeg -i "$mkv_file" -c:v libvpx-vp9 -crf 18 -b:v 0 -c:a libopus "$output_file" -y -loglevel error -stats; then
+    # Run ffmpeg conversion with optimized settings for smaller file size
+    # CRF 30-32: Good balance between quality and file size (lower = better quality, larger file)
+    # -row-mt 1: Enable row-based multithreading for faster encoding
+    # -deadline good: Better compression than realtime, faster than best
+    # -cpu-used 2: Encoding speed (0-5, higher = faster but less efficient)
+    # Audio: libopus at 128k is good quality for most content
+    if ffmpeg -i "$mkv_file" \
+        -c:v libvpx-vp9 -crf 31 -b:v 0 \
+        -row-mt 1 -deadline good -cpu-used 2 \
+        -c:a libopus -b:a 128k \
+        "$output_file" -y -loglevel error -stats; then
         echo -e "${GREEN}✓ Successfully converted: ${filename_no_ext}.webm${NC}\n"
         ((converted++))
     else
